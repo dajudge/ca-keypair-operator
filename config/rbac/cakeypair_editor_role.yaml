@@ -1,0 +1,24 @@
+# permissions for end users to edit cakeypairs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cakeypair-editor-role
+rules:
+- apiGroups:
+  - cakeypairs.dajudge.com
+  resources:
+  - cakeypairs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cakeypairs.dajudge.com
+  resources:
+  - cakeypairs/status
+  verbs:
+  - get

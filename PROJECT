@@ -1,3 +1,7 @@
 domain: dajudge.com
 repo: ca-keypair-operator
+resources:
+- group: cakeypairs
+  kind: CaKeyPair
+  version: v1alpha1
 version: "2"

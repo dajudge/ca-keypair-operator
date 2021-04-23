@@ -1,0 +1,7 @@
+apiVersion: cakeypairs.dajudge.com/v1alpha1
+kind: CaKeyPair
+metadata:
+  name: cakeypair-sample
+spec:
+  # Add fields here
+  foo: bar

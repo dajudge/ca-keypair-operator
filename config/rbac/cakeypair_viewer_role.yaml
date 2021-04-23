@@ -1,0 +1,20 @@
+# permissions for end users to view cakeypairs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cakeypair-viewer-role
+rules:
+- apiGroups:
+  - cakeypairs.dajudge.com
+  resources:
+  - cakeypairs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cakeypairs.dajudge.com
+  resources:
+  - cakeypairs/status
+  verbs:
+  - get
