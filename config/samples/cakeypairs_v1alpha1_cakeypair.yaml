@@ -3,5 +3,10 @@ kind: CaKeyPair
 metadata:
   name: cakeypair-sample
 spec:
-  # Add fields here
-  foo: bar
+  keySize: 4096
+  secretName: ca-key-pair
+  commonName: My own root CA
+  subject:
+    organizations: [ "Acme Corp." ]
+    organizationalUnits: [ "Cyber-Security Global Operations", "CS-GO" ]
+    countries: [ "Lampukistan" ]

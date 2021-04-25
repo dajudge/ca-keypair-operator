@@ -17,28 +17,60 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // CaKeyPairSpec defines the desired state of CaKeyPair
 type CaKeyPairSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// KeySize specifies the key size in bits of the generated keypair
+	KeySize int32 `json:"keySize,omitempty"`
 
-	// Foo is an example field of CaKeyPair. Edit CaKeyPair_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// SecretName specifies the name of secret to store the generated keypair in
+	SecretName string `json:"secretName,omitempty"`
+
+	// Subject the subject for the CA cert
+	Subject CaKeyPairSubject `json:"subject,omitempty"`
+
+	// The common name
+	CommonName string `json:"commonName"`
 }
 
 // CaKeyPairStatus defines the observed state of CaKeyPair
 type CaKeyPairStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Reference to the secret
+	Secret corev1.ObjectReference `json:"active,omitempty"`
+}
+
+// CaKeyPairSubject defines the full X509 name specification
+type CaKeyPairSubject struct {
+	// Organizations
+	Organizations []string `json:"organizations,omitempty"`
+
+	// Countries
+	Countries []string `json:"countries,omitempty"`
+
+	// Organizational units
+	OrganizationalUnits []string `json:"organizationalUnits,omitempty"`
+
+	// Localities
+	Localities []string `json:"localities,omitempty"`
+
+	// Provinces
+	Provices []string `json:"provices,omitempty"`
+
+	// Street addresses
+	StreetAddresses []string `json:"streetAddresses,omitempty"`
+
+	// Postal codes
+	PostalCodes []string `json:"postalCodes,omitempty"`
+
+	// Serial number
+	SerialNumber string `json:"serialNumber,omitempty"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // CaKeyPair is the Schema for the cakeypairs API
 type CaKeyPair struct {
