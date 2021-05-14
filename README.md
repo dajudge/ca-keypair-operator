@@ -1,16 +1,23 @@
-# CA-KeyPair Operator
-
+CA-KeyPair Operator
+-
 > **ATTENTION:** THE `MASTER` BRANCH MAY BE IN AN UNSTABLE OR EVEN BROKEN STATE DURING DEVELOPMENT.
 
-[cert-manager](https://cert-manager.io/) is a very fine solution if you want to run you own CA for signing certificates.
+# TL;DR
+The CA-KeyPair Operator allows you easily initialize random CA key pairs in Kubernetes.
 
-In order for the cert-manager to sign certificates however, there needs to be a CA key pair for the cert-manager first.
+# Description
+[cert-manager](https://cert-manager.io/) is (among other things) a very fine solution if you want to run you own
+CA in Kubernetes for signing certificates.
 
-The CA-KeyPair Operator allows you to create CA key pairs in Kubernetes.
+In order for the cert-manager to sign certificates however, there needs to be a CA key pair for the cert-manager to pick
+up, first. This can be daunting to put in place if you're only interested in a randomly initialized CA.
 
-## Getting started
+The CA-KeyPair operator introduces a CRD to describe the key pairs you want to initialize and creates random key pairs
+in Kubernetes secrets based on these specifications.
 
-### Install CA-KeyPair Operator with helm
+# Getting started
+
+## Install CA-KeyPair Operator with helm
 You can install the CA-KeyPair Operator with [Helm 3](https://helm.sh/).
 
 ```shell
@@ -24,7 +31,7 @@ $ kubectl create ns cakeypair-operator
 $ helm install -n cakeypair-operator cakeypair-operator cakeypair-operator/cakeypair-operator
 ```
 
-### Deploy a key pair
+## Deploy a key pair
 Deploy a `CaKeyPair` custom resource:
 
 ```yaml
@@ -42,13 +49,13 @@ spec:
     countries: [ "Lampukistan" ]
 ```
 
-## Additional references
+# Additional references
 
 * [cert-manager](https://cert-manager.io/docs/)
 * [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 * [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
 * [Kubebuilder](https://book.kubebuilder.io/)
 
-## License
+# License
 
 See [LICENSE](https://github.com/dajudge/cakeypair-operator/blob/master/LICENSE) for licensing details.
