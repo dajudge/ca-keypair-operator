@@ -61,6 +61,7 @@ func publicKey(priv interface{}) interface{} {
 
 // +kubebuilder:rbac:groups=cakeypairs.dajudge.com,resources=cakeypairs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cakeypairs.dajudge.com,resources=cakeypairs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *CaKeyPairReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -69,7 +70,10 @@ func (r *CaKeyPairReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var caKeyPair cakeypairsv1alpha1.CaKeyPair
 	if err := r.Get(ctx, req.NamespacedName, &caKeyPair); err != nil {
 		log.Error(err, "Failed to load CA key pair")
-		return ctrl.Result{RequeueAfter: time.Minute}, client.IgnoreNotFound(err)
+		// we'll ignore not-found errors, since they can't be fixed by an immediate
+		// requeue (we'll need to wait for a new notification), and we can get them
+		// on deleted requests.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	log.Info("CA key pair loaded", "data", caKeyPair)
 
@@ -214,6 +218,7 @@ func (r *CaKeyPairReconciler) InitNewKeyPair(
 	caKeyPair cakeypairsv1alpha1.CaKeyPair,
 	log logr.Logger,
 ) (*bytes.Buffer, *bytes.Buffer, error) {
+	start := makeTimestamp()
 	priv, err := rsa.GenerateKey(rand.Reader, int(caKeyPair.Spec.KeySize))
 	if err != nil {
 		log.Error(err, "Failed to generate private key for key pair")
@@ -254,6 +259,8 @@ func (r *CaKeyPairReconciler) InitNewKeyPair(
 		Type:  "CERTIFICATE",
 		Bytes: derBytes,
 	})
+	end := makeTimestamp()
+	log.Info("New key pair initialized", "millis", end-start)
 	return keyBuffer, certBuffer, nil
 }
 
@@ -277,14 +284,14 @@ func (r *CaKeyPairReconciler) DeleteExistingSecret(
 			return err
 		}
 	}
-	log.Info("Old secret is present", "oldSecret", oldSecret)
+	log.Info("Old secret is present", "oldSecretName", oldSecretName)
 	if err := r.Delete(ctx, &oldSecret); err != nil {
 		if !apierrors.IsNotFound(err) {
 			log.Error(err, "Failed to delete existing secret", "secret", oldSecretName)
 			return err
 		}
 	}
-	log.Info("Old secret deleted", "oldSecret", oldSecret)
+	log.Info("Old secret deleted", "oldSecret", oldSecretName)
 	return nil
 }
 
@@ -292,4 +299,8 @@ func (r *CaKeyPairReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&cakeypairsv1alpha1.CaKeyPair{}).
 		Complete(r)
+}
+
+func makeTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

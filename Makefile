@@ -88,7 +88,6 @@ endif
 #############################################
 # Helm
 #############################################
-CHART_REPO_URL := /cakeypair-operator/charts
 CHART_TEMPLATE_PATH := $(CHART_CAKEYPAIR_OPERATOR)/templates
 DO_NOT_EDIT := THIS IS GENERATED CODE. DO NOT EDIT!
 
@@ -104,12 +103,13 @@ helm-regenerate: helm-clean helm-generate
 helm-generate: $(CHARTS_DIRECTORY)/index.yaml
 
 $(CHARTS_DIRECTORY)/index.yaml: $(CHARTS_DIRECTORY)/cakeypair-operator-$(RELEASE_VERSION).tgz
-	helm repo index \
-		--url $(CHART_REPO_URL) \
-		$(CHARTS_DIRECTORY)
+	helm repo index --url ./ $(CHARTS_DIRECTORY)
 
-$(CHARTS_DIRECTORY)/cakeypair-operator-$(RELEASE_VERSION).tgz: $(CHART_TEMPLATE_PATH)/clusterRole.yaml \
+$(CHARTS_DIRECTORY)/cakeypair-operator-$(RELEASE_VERSION).tgz: \
+	$(CHART_TEMPLATE_PATH)/clusterRole.yaml \
 	$(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml \
+	$(CHART_TEMPLATE_PATH)/role.yaml \
+	$(CHART_TEMPLATE_PATH)/roleBinding.yaml \
 	$(CHART_TEMPLATE_PATH)/deployment.yaml \
 	$(CHART_TEMPLATE_PATH)/serviceAccount.yaml \
 	$(CHART_CAKEYPAIR_OPERATOR)/Chart.yaml
@@ -132,6 +132,17 @@ $(CHART_TEMPLATE_PATH)/clusterRole.yaml: $(wildcard config/helm/rbac/*) $(wildca
 		>> $(CHART_TEMPLATE_PATH)/clusterRole.yaml
 	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/clusterRole.yaml
 
+$(CHART_TEMPLATE_PATH)/role.yaml: $(wildcard config/helm/rbac/*) $(wildcard config/rbac/*)
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/role.yaml
+	echo '{{- if .Values.rbac.create }}' >> $(CHART_TEMPLATE_PATH)/role.yaml
+	kustomize build --reorder legacy config/helm/rbac | \
+	kustomize cfg grep --annotate=false 'kind=Role' | \
+	kustomize cfg grep --annotate=false --invert-match 'kind=RoleBinding' | \
+	kustomize cfg grep --annotate=false --invert-match 'kind=ClusterRole' | \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+		>> $(CHART_TEMPLATE_PATH)/role.yaml
+	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/role.yaml
+
 $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml: $(wildcard config/helm/rbac/*) $(wildcard config/rbac/*)
 	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
 	echo '{{- if .Values.rbac.create }}' >> $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
@@ -140,6 +151,16 @@ $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml: $(wildcard config/helm/rbac/*) $
 	sed "s/'\({{[^}}]*}}\)'/\1/g" \
 		>> $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
 	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
+
+$(CHART_TEMPLATE_PATH)/roleBinding.yaml: $(wildcard config/helm/rbac/*) $(wildcard config/rbac/*)
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/roleBinding.yaml
+	echo '{{- if .Values.rbac.create }}' >> $(CHART_TEMPLATE_PATH)/roleBinding.yaml
+	kustomize build --reorder legacy config/helm/rbac | \
+	kustomize cfg grep --annotate=false 'kind=RoleBinding' | \
+	kustomize cfg grep --annotate=false --invert-match 'kind=ClusterRoleBinding' | \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+		>> $(CHART_TEMPLATE_PATH)/roleBinding.yaml
+	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/roleBinding.yaml
 
 $(CHART_TEMPLATE_PATH)/deployment.yaml: $(wildcard config/helm/deployment/*) $(wildcard config/manager/*) $(wildcard config/config/*)
 	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/deployment.yaml
