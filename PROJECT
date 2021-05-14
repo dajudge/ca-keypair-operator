@@ -1,5 +1,5 @@
 domain: dajudge.com
-repo: ca-keypair-operator
+repo: cakeypair-operator
 resources:
 - group: cakeypairs
   kind: CaKeyPair

@@ -1,0 +1,26 @@
+# Metadata
+- op: replace
+  path: /metadata/name
+  value: controller-manager
+- op: replace
+  path: /metadata/labels
+  value: '{{- include "chart.labels" . | nindent 4 }}'
+- op: replace
+  path: /spec/selector/matchLabels
+  value: '{{- include "chart.selectorLabels" . | nindent 6 }}'
+- op: replace
+  path: /spec/template/metadata/labels
+  value: '{{- include "chart.selectorLabels" . | nindent 8 }}'
+- op: replace
+  path: /spec/template/metadata/annotations
+  value: '{{- toYaml .Values.podAnnotations | nindent 8 }}'
+
+# Image
+- op: replace
+  path: /spec/template/spec/containers/0/image
+  value: '{{.Values.image.repository}}:{{.Values.image.tag|default .Chart.AppVersion}}'
+
+# RBAC
+- op: replace
+  path: /spec/template/spec/serviceAccountName
+  value: '{{ include "chart.serviceAccountName" . | quote }}'

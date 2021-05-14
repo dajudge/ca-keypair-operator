@@ -37,7 +37,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	cakeypairsv1alpha1 "ca-keypair-operator/api/v1alpha1"
+	cakeypairsv1alpha1 "cakeypair-operator/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 

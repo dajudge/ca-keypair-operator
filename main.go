@@ -26,8 +26,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	cakeypairsv1alpha1 "ca-keypair-operator/api/v1alpha1"
-	"ca-keypair-operator/controllers"
+	cakeypairsv1alpha1 "cakeypair-operator/api/v1alpha1"
+	"cakeypair-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 

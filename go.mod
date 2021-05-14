@@ -1,4 +1,4 @@
-module ca-keypair-operator
+module cakeypair-operator
 
 go 1.13
 

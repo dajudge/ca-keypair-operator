@@ -1,0 +1,20 @@
+rbac:
+  # rbac.create -- Whether to install Role Based Access Control
+  create: true
+
+serviceAccount:
+  # serviceAccount.create -- Specifies whether a service account should be created
+  create: true
+  # serviceAccount.annotations -- Annotations to add to the service account
+  annotations: {}
+  # serviceAccount.name -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname templates
+  name: ""
+
+image:
+  # image.repository -- The image repository whose default is the chart appVersion.
+  repository: dajudge/cakeypair-operator
+  # image.pullPolicy -- The image pull policy for the controller.
+  pullPolicy: IfNotPresent
+  # image.tag -- The image tag whose default is the chart appVersion.
+  tag: null

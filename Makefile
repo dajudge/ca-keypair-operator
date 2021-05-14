@@ -1,3 +1,8 @@
+RELEASE_VERSION ?= 0.0.0-dev
+
+CHARTS_DIRECTORY			:= charts
+CHART_CAKEYPAIR_OPERATOR	:= $(CHARTS_DIRECTORY)/cakeypair-operator
+KUSTOMIZE					:= $(BIN)/kustomize
 
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
@@ -78,3 +83,72 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+
+#############################################
+# Helm
+#############################################
+CHART_REPO_URL := /cakeypair-operator/charts
+CHART_TEMPLATE_PATH := $(CHART_CAKEYPAIR_OPERATOR)/templates
+DO_NOT_EDIT := THIS IS GENERATED CODE. DO NOT EDIT!
+
+.PHONY:helm-clean
+helm-clean:
+	rm $(CHART_TEMPLATE_PATH)/*.yaml -f
+	rm $(CHART_CAKEYPAIR_OPERATOR)/Chart.yaml -f
+
+.PHONY:helm-regenerate
+helm-regenerate: helm-clean helm-generate
+
+.PHONY:helm-generate
+helm-generate: $(CHARTS_DIRECTORY)/index.yaml
+
+$(CHARTS_DIRECTORY)/index.yaml: $(CHARTS_DIRECTORY)/cakeypair-operator-$(RELEASE_VERSION).tgz
+	helm repo index \
+		--url $(CHART_REPO_URL) \
+		$(CHARTS_DIRECTORY)
+
+$(CHARTS_DIRECTORY)/cakeypair-operator-$(RELEASE_VERSION).tgz: $(CHART_TEMPLATE_PATH)/clusterRole.yaml \
+	$(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml \
+	$(CHART_TEMPLATE_PATH)/deployment.yaml \
+	$(CHART_TEMPLATE_PATH)/serviceAccount.yaml \
+	$(CHART_CAKEYPAIR_OPERATOR)/Chart.yaml
+	helm package $(CHART_CAKEYPAIR_OPERATOR) \
+		--version $(RELEASE_VERSION) \
+		--app-version $(RELEASE_VERSION) \
+		--destination $(CHARTS_DIRECTORY)
+
+$(CHART_TEMPLATE_PATH)/serviceAccount.yaml: config/helm/rbac/serviceAccount.template.yaml
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/serviceAccount.yaml
+	cat config/helm/rbac/serviceAccount.template.yaml >> $(CHART_TEMPLATE_PATH)/serviceAccount.yaml
+
+$(CHART_TEMPLATE_PATH)/clusterRole.yaml: $(wildcard config/helm/rbac/*) $(wildcard config/rbac/*)
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/clusterRole.yaml
+	echo '{{- if .Values.rbac.create }}' >> $(CHART_TEMPLATE_PATH)/clusterRole.yaml
+	kustomize build --reorder legacy config/helm/rbac | \
+	kustomize cfg grep --annotate=false 'kind=ClusterRole' | \
+	kustomize cfg grep --annotate=false --invert-match 'kind=ClusterRoleBinding' | \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+		>> $(CHART_TEMPLATE_PATH)/clusterRole.yaml
+	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/clusterRole.yaml
+
+$(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml: $(wildcard config/helm/rbac/*) $(wildcard config/rbac/*)
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
+	echo '{{- if .Values.rbac.create }}' >> $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
+	kustomize build --reorder legacy config/helm/rbac | \
+	kustomize cfg grep --annotate=false 'kind=ClusterRoleBinding' | \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+		>> $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
+	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/clusterRoleBinding.yaml
+
+$(CHART_TEMPLATE_PATH)/deployment.yaml: $(wildcard config/helm/deployment/*) $(wildcard config/manager/*) $(wildcard config/config/*)
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/deployment.yaml
+	kustomize build --reorder legacy config/helm/deployment | \
+	kustomize cfg grep --annotate=false 'kind=Deployment' | \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+		>> $(CHART_TEMPLATE_PATH)/deployment.yaml
+
+$(CHART_CAKEYPAIR_OPERATOR)/Chart.yaml: $(CHART_CAKEYPAIR_OPERATOR)/Chart.template.yaml
+	echo '# $(DO_NOT_EDIT)' > $(CHART_CAKEYPAIR_OPERATOR)/Chart.yaml
+	cat $(CHART_CAKEYPAIR_OPERATOR)/Chart.template.yaml \
+		| sed "s/{{ VERSION }}/$(RELEASE_VERSION)/g" >> $(CHART_CAKEYPAIR_OPERATOR)/Chart.yaml

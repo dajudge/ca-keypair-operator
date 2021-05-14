@@ -1,0 +1,18 @@
+namePrefix: '{{ include "chart.fullname" . }}-'
+
+namespace: '{{ .Release.Namespace | quote }}'
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: cakeypair-operator-controller-manager
+      namespace: cakeypair-operator-system
+    path: deployment.patch.yaml
+
+bases:
+  - ../../default
