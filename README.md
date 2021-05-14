@@ -3,7 +3,7 @@ CA-KeyPair Operator
 > **ATTENTION:** THE `MASTER` BRANCH MAY BE IN AN UNSTABLE OR EVEN BROKEN STATE DURING DEVELOPMENT.
 
 # TL;DR
-The CA-KeyPair Operator allows you easily initialize random CA key pairs in Kubernetes.
+The CA-KeyPair Operator allows you to easily initialize random CA key pairs in Kubernetes.
 
 # Description
 [cert-manager](https://cert-manager.io/) is (among other things) a very fine solution if you want to run you own
