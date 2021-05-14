@@ -10,8 +10,19 @@ The CA-KeyPair Operator allows you to create CA key pairs in Kubernetes.
 
 ## Getting started
 
-### Installation
-TODO
+### Install CA-KeyPair Operator with helm
+You can install the CA-KeyPair Operator with [Helm 3](https://helm.sh/).
+
+```shell
+# Add the helm repo
+$ helm repo add cakeypair-operator https://raw.githubusercontent.com/dajudge/cakeypair-operator/master/charts/
+
+# Create a namespace for the operator
+$ kubectl create ns cakeypair-operator
+
+# Install the latest operator version 
+$ helm install -n cakeypair-operator cakeypair-operator cakeypair-operator/cakeypair-operator
+```
 
 ### Deploy a key pair
 Deploy a `CaKeyPair` custom resource:
